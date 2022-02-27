@@ -1,0 +1,64 @@
+.admin-login {
+  display: grid;
+  gap: 10px;
+  width: 500px;
+  margin: 0 auto;
+}
+
+.admin-login > input {
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.admin-login > button {
+  padding: 10px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  background: #EBE8E8;
+}
+
+.logout-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  border-radius: 10px;
+}
+
+.add-participant-container {
+  margin: 10px 0;
+  display: grid;
+  gap: 10px;
+}
+
+.add-participant-container > input {
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.add-participant-container > button,
+.add-participant-container > .add-leader-container > button {
+padding: 10px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  background: #EBE8E8;
+}
+
+.add-participant-container > .add-leader-container {
+  margin: 10px 0;
+}
+
+.add-participant-container > .add-leader-container > .leaders {
+  display: flex;
+  gap: 0 10px;
+  flex-wrap: wrap;
+}
+
+.add-participant-container > .add-leader-container > .leaders  > * {
+  color: white;
+  background: #508a9f;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}

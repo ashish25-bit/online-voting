@@ -10,32 +10,36 @@ import PoliticalParties from "./components/PoliticalParty";
 import Party from "./components/PoliticalParty/Party";
 import NotFound from "./components/NotFound";
 import { AdminProvider } from "./context/AdminContext";
+import Alert from "./components/Alert";
 
 function App() {
   return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route exact path="/" element={<Home />} />
-        <Route exact path="/voter" element={<Voter />} />
-        <Route
-          exact
-          path="/admin"
-          element={
-            <AdminProvider>
-              <Admin />
-            </AdminProvider>
-          }
-        />
-        <Route
-          exact
-          path="/participating-parties"
-          element={<PoliticalParties />}
-        />
-        <Route exact path="/party/:id" element={<Party />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
+    <div className="main-container">
+      <Router>
+        <Header />
+        <Routes>
+          <Route exact path="/" element={<Home />} />
+          <Route exact path="/voter" element={<Voter />} />
+          <Route
+            exact
+            path="/admin"
+            element={
+              <AdminProvider>
+                <Admin />
+              </AdminProvider>
+            }
+          />
+          <Route
+            exact
+            path="/participating-parties"
+            element={<PoliticalParties />}
+          />
+          <Route exact path="/party/:id" element={<Party />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+      <Alert />
+    </div>
   );
 }
 

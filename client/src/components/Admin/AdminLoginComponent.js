@@ -1,3 +1,4 @@
+import './index.css';
 import React, { useEffect, useRef } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { useElection } from '../../context/ElectionContext';
@@ -14,7 +15,9 @@ function AdminLoginComponent() {
     passwordRef.current.value = "1234567890";
   }, [])
 
-  async function loginAdmin() {
+  async function loginAdmin(e) {
+    e.preventDefault();
+
     try {
       const { electionContract: contract } = await getEthereumContract();
       const name = userNameRef.current.value;
@@ -35,11 +38,11 @@ function AdminLoginComponent() {
   }
 
   return (
-    <div>
+    <form onSubmit={loginAdmin} className='admin-login'>
       <input ref={userNameRef} type={"text"} placeholder="enter the username" />
-      <input ref={passwordRef} type={"text"} placeholder="enter the password" />
-      <button onClick={loginAdmin}>Login</button>
-    </div>
+      <input ref={passwordRef} type={"password"} placeholder="enter the password" />
+      <button type={"submit"}>Login</button>
+    </form>
   );
 }
 

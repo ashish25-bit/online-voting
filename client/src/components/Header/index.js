@@ -1,3 +1,4 @@
+import "./index.css";
 import React from "react";
 import { useElection } from "../../context/ElectionContext";
 import { Link } from "react-router-dom";
@@ -5,22 +6,33 @@ import { Link } from "react-router-dom";
 function Header() {
   const { currentAccount, connectWallet } = useElection();
 
+  async function clickHandler(e) {
+    try {
+      e.target.disabled = true;
+      await connectWallet();
+      console.log("connected to wallet");
+    } catch (err) {
+      console.log("first");
+    }
+  }
+
   return (
-    <div>
+    <div className="header">
       {currentAccount && (
         <p>
-          <b>Current Account: {currentAccount}</b>
+          Current Account: <b>{currentAccount}</b>
         </p>
       )}
-      {!currentAccount && <button onClick={connectWallet}>Connect</button>}
+      {!currentAccount && (
+        <button onClick={clickHandler}>Connect TO metamask wallet</button>
+      )}
       {currentAccount && (
-        <div>
+        <div style={{ marginTop: "20px" }}>
           <Link to="/">Home</Link> <Link to="/voter">Vote</Link>{" "}
           <Link to="/admin">Admin</Link>{" "}
           <Link to="/participating-parties">Participating Parties</Link>{" "}
         </div>
       )}
-      <hr />
     </div>
   );
 }

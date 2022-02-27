@@ -1,0 +1,19 @@
+.header {
+  padding: 20px;
+  background-color: #ebe8e8;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.header button {
+  background: #9f9f9f;
+  padding: 10px 25px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.header a {
+    text-transform: uppercase;
+    margin-right: 15px;
+}

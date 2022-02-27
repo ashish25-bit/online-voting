@@ -1,0 +1,11 @@
+.alert-container {
+  position: fixed;
+  top: 10px;
+  right: 25px;
+  background: #e97b7b;
+  padding: 15px 20px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  color: #fff;
+  min-width: 400px;
+}
