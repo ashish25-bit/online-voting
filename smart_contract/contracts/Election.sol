@@ -1,12 +1,25 @@
 pragma solidity ^0.5.16;
 
 contract Election {
+  // to store the inforamtion about the candidates
   struct Candidate {
     uint id;
     string politicalPartyName;
     string politicalPartyDescription;
     string leaders;
     uint voteCount;
+  }
+
+  // structure for executors
+  // username: for login username
+  // password: for login password
+  // role: viewer or editor
+  // role value = 1: viewer
+  // role value = 2: editor
+  struct Executor {
+    string username;
+    string password;
+    uint role;
   }
 
   // fetch the candidate
@@ -25,6 +38,13 @@ contract Election {
   // it will be initialized to zero meaning the elections time has not been set
   uint256 public startTimestamp;
   uint256 public endTimestamp;
+
+  // create the mapping for executors
+  // this is done to keep the unique usernames
+  mapping(string => Executor) public executors;
+  // array for keeping the executors
+  string[] public executor_names;
+
 
   constructor() public {
     // default election administrator credentials
@@ -49,6 +69,24 @@ contract Election {
     candidateCount++;
     candidates[candidateCount] = Candidate(candidateCount, _partyName, _partyDescription, _leads, 0);
     return true;
+  }
+
+  // for editing/updating the candidate data
+  // type == "name" -> political party name
+  // type == "desc" -> political party description
+  // type == "leader" -> political party leaders
+  function editCandidate(uint _id, string memory _type, string memory _data) public {
+    if (candidates[_id].id == 0)
+      return;
+
+    if (keccak256(bytes(_type)) == keccak256(bytes("name")))
+      candidates[_id].politicalPartyName = _data;
+
+    else if (keccak256(bytes(_type)) == keccak256(bytes("desc")))
+      candidates[_id].politicalPartyDescription = _data;
+
+    else if (keccak256(bytes(_type)) == keccak256(bytes("leader")))
+      candidates[_id].leaders = _data;
   }
 
   // this is the main function for the application
@@ -86,6 +124,8 @@ contract Election {
   }
 
   // change password
+  // _type == 1 -> administrator
+  // _type == 2 -> executor
   function changePassword(string memory _name, string memory _new_password, uint _type) public returns (bool) {
     // for administrator
     if (_type == 1) {
@@ -97,6 +137,50 @@ contract Election {
     }
 
     // for the executor
+    if (_type == 2) {
+      if (executors[_name].role == 0)
+        return false;
+
+      executors[_name].password = _new_password;
+      return true;
+    }
+
     return false;
+  }
+
+  // adding a new executor
+  function addExecutor(string memory _username, string memory _password, uint _role) public returns (bool) {
+    if (executors[_username].role != 0)
+      return false;
+
+    if (_role <= 0 || _role >= 3)
+      return false;
+
+    executor_names.push(_username);
+    executors[_username] = Executor(_username, _password, _role);
+    return true;
+  }
+
+  // editing the executor data
+  function editExecutorRole(string memory _name, uint _role) public returns (bool) {
+    if (executors[_name].role == 0)
+      return false;
+
+    if (_role <= 0 || _role >= 3)
+      return false;
+
+    executors[_name].role = _role;
+  }
+
+  function deleteExecutor(string memory _name) public returns (bool) {
+    if (executors[_name].role == 0)
+      return false;
+
+    return true;
+  }
+
+  // to get the total number of executors added by the admininstrator
+  function executorArrayLength() public view returns(uint count) {
+    return executor_names.length;
   }
 }
