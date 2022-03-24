@@ -31,8 +31,9 @@ contract Election {
   string private adminPassword;
 
   // store the mapping of voter id number who has already voted
-  mapping(string => bool) public voters;
-  uint public totalVotes;
+  mapping(string => bool) public voter_ids;
+  mapping(address => bool) public voter_addresses;
+  uint private totalVotes;
 
   // to keep track of the starting and ending time of the election
   // it will be initialized to zero meaning the elections time has not been set
@@ -89,17 +90,57 @@ contract Election {
       candidates[_id].leaders = _data;
   }
 
+  function deleteCandidate(uint _id) public {
+    candidateCount--;
+    delete candidates[_id];
+  }
+
   // this is the main function for the application
   // this will handle the vote logic of the appliation
   // voter id number and the candidate id is required as arguments to this function
-  function vote(string memory _voterId, uint _candidateID, uint _currentTimestamp) public returns (bool) {
-    if (_currentTimestamp < startTimestamp || _currentTimestamp > endTimestamp)
-      return false;
+  function vote(string memory _voterId, uint _candidateID, uint _currentTimestamp) public {
+    // check whether the election time has been set or not
+    if (startTimestamp == 0 || endTimestamp == 0) {
+      return;
+    }
 
-    voters[_voterId] = true;
+    // check whether the vote within the time frame of the elections
+    if (_currentTimestamp < startTimestamp || _currentTimestamp > endTimestamp) {
+      return;
+    }
+
+    // check for the voter id in the voter_ids mapping
+    if (voter_ids[_voterId] == true) {
+      return;
+    }
+
+    // check for the device address in the voter_address mapping
+    if (voter_addresses[msg.sender] == true) {
+      return;
+    }
+
+    // change the data
+    voter_ids[_voterId] = true;
+    voter_addresses[msg.sender] = true;
     totalVotes++;
     candidates[_candidateID].voteCount++;
-    return true;
+  }
+
+  function validate_system_and_id(string memory _voterId) public view returns (uint) {
+    if (voter_ids[_voterId] == true) {
+      return 1;
+    }
+
+    if (voter_addresses[msg.sender] == true) {
+      return 2;
+    }
+
+    return 0;
+  }
+
+  // returns the total number of votes casted since the total_votes variable is private 
+  function get_total_votes() public view returns (uint count) {
+    return totalVotes;
   }
 
   // verifying the username and password for the administrator or the executors
@@ -170,14 +211,15 @@ contract Election {
       return false;
 
     executors[_name].role = _role;
-  }
-
-  function deleteExecutor(string memory _name) public returns (bool) {
-    if (executors[_name].role == 0)
-      return false;
-
     return true;
   }
+
+  // function deleteExecutor(string memory _name) public returns (bool) {
+  //   if (executors[_name].role == 0)
+  //     return false;
+
+  //   return true;
+  // }
 
   // to get the total number of executors added by the admininstrator
   function executorArrayLength() public view returns(uint count) {
