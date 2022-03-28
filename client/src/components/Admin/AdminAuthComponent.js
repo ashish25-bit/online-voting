@@ -1,75 +1,109 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef } from "react";
 import { useAdmin } from "../../context/AdminContext";
 import { useElection } from "../../context/ElectionContext";
 import { useAlert } from "../../context/AlterContext";
+import AddPartyComponent from "./AddPartyComponent";
+import ExecutorListComponent from "./ExecutorListComponent";
 
-function AdminAuthComponent() {
-  const nameRef = useRef();
-  const descRef = useRef();
+function AdminAuthComponent({ username }) {
+  const addexecutor_name = useRef();
+  const addexecutor_password = useRef();
+  const addexecutor_role = useRef();
+
   const { getEthereumContract } = useElection();
   const { authAdmin } = useAdmin();
   const { setAlertMessage } = useAlert();
 
-  const [leadersData, setLeadersData] = useState([]);
+  const getAllExecutors = useCallback(async () => {
+    const { electionContract: contract } = await getEthereumContract();
+    const executorLength = (await contract.executorArrayLength()).toNumber();
+    let result = [];
 
-  async function addParty() {
+    for (let i = 0; i < executorLength; i++) {
+      try {
+        const name = await contract.executor_names(i);
+        const role = (await contract.executors(name)).role.toNumber();
+        result.push({ name, role });
+      }
+      catch (_err) {
+        console.log(_err);
+      }
+    }
+
+    return result;
+  }, [getEthereumContract]);
+
+  async function addExecutor() {
     try {
-      const name = nameRef.current.value;
-      const desc = descRef.current.value;
+      const name = addexecutor_name.current?.value;
+      const password = addexecutor_password.current?.value;
+      const role = addexecutor_role.current?.value;
 
-      if (name === "" || desc === "") {
-        alert("Both the fields are required");
-        return;
+      if (name === "") {
+        return alert("Username is a required field");
       }
-
-      if (leadersData.length === 0) {
-        alert("Atleast one leader is required");
-        return;
+      if (password === "") {
+        return alert("Password is a required field");
       }
-
-      let leaders = leadersData.join('\n');
+      if (role === 0) {
+        return alert("Role is a required field");
+      }
 
       const { electionContract: contract } = await getEthereumContract();
-      await contract.addCandidate(name, desc, leaders);
 
-      setAlertMessage("Data Added");
+      const no_error = await contract.no_error();
+      const isValid = await contract.validate_executor_data(1, name, role);
+
+      if (isValid !== no_error) {
+        setAlertMessage(isValid);
+        return;
+      }
+
+      await contract.addExecutor(name, password, role);
+      const executors = await getAllExecutors();
+      console.log(executors);
+      setAlertMessage("Executor added successfully");
+
+      addexecutor_name.current.value = "";
+      addexecutor_password.current.value = "";
+      addexecutor_role.current.value = 0;
     }
     catch (err) {
-      setAlertMessage(err.message)
+      setAlertMessage(err.message);
       console.log(err);
     }
   }
 
-  function addLeader() {
-    const data = prompt("Enter Leader Name");
-
-    if (data === "")
-      return;
-
-    setLeadersData(prevData => [...prevData, data]);
-  }
-
   return (
     <div>
-      <button className="logout-btn" onClick={() => authAdmin(null, null)}>
+      <p style={{ textTransform: "uppercase" }}>User: {username}</p>
+      <button className="logout-btn" onClick={() => authAdmin(null, null, -1)}>
         Logout
       </button>
-      <h1>Add Participants</h1>
-      <div className="add-participant-container">
-        <input ref={nameRef} type={"text"} placeholder="name of the party" />
-        <input ref={descRef} type={"text"} placeholder="desc of the party" />
 
-        <div className="add-leader-container">
-          <div className="leaders">
-            {leadersData.map((data, index) => {
-              return <div key={index}>{data}</div>;
-            })}
-          </div>
-          <button onClick={addLeader}>Add leader</button>
-        </div>
+      <AddPartyComponent />
 
-        <button onClick={addParty}>Add Party</button>
+      <div className="add-executor-container">
+        <h1>Add Executor</h1>
+        <input
+          ref={addexecutor_name}
+          type={"text"}
+          placeholder="Enter username for executor"
+        />
+        <input
+          ref={addexecutor_password}
+          type={"password"}
+          placeholder="Enter password for executor"
+        />
+        <select ref={addexecutor_role}>
+          <option value={0}>Select Role</option>
+          <option value={1}>Viewer</option>
+          <option value={2}>Editor</option>
+        </select>
+        <button onClick={addExecutor}>Add Executor</button>
       </div>
+
+      <ExecutorListComponent />
     </div>
   );
 }

@@ -16,8 +16,8 @@ function Voter() {
     try {
       const { electionContract: contract } = await getEthereumContract();
 
-      const startTimestamp = (await contract.startTimestamp()).toNumber();
-      const endTimestamp = (await contract.endTimestamp()).toNumber();
+      const startTimestamp = (await contract.startTimestamp());
+      const endTimestamp = (await contract.endTimestamp());
       const currentTimestamp = new Date().getTime();
 
       if (

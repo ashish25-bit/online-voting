@@ -26,18 +26,23 @@
   border-radius: 10px;
 }
 
-.add-participant-container {
+.add-participant-container,
+.add-executor-container {
   margin: 10px 0;
+  margin-bottom: 30px;
   display: grid;
   gap: 10px;
 }
 
-.add-participant-container > input {
+.add-participant-container > input,
+.add-executor-container > input,
+.add-executor-container select {
   padding: 10px;
   border-radius: 5px;
 }
 
 .add-participant-container > button,
+.add-executor-container > button,
 .add-participant-container > .add-leader-container > button {
 padding: 10px;
   border-radius: 5px;
@@ -61,4 +66,18 @@ padding: 10px;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 10px;
+}
+
+.add-executor-container select {
+  text-transform: uppercase;
+}
+
+.executor-list {
+  display: grid;
+  grid-gap: 10px;
+}
+
+.executor-list div {
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  padding: 10px;
 }

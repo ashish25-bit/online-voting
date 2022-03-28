@@ -2,6 +2,7 @@ import './index.css';
 import React, { useEffect, useRef } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { useElection } from '../../context/ElectionContext';
+import { useAlert } from '../../context/AlterContext';
 
 function AdminLoginComponent() {
 
@@ -9,10 +10,11 @@ function AdminLoginComponent() {
   const passwordRef = useRef();
   const { getEthereumContract } = useElection();
   const { authAdmin } = useAdmin();
+  const { setAlertMessage } = useAlert();
 
   useEffect(() => {
-    userNameRef.current.value = "Admin";
-    passwordRef.current.value = "1234567890";
+    userNameRef.current.value = "Ashish";
+    passwordRef.current.value = "1234";
   }, [])
 
   async function loginAdmin(e) {
@@ -23,17 +25,28 @@ function AdminLoginComponent() {
       const name = userNameRef.current.value;
       const password = passwordRef.current.value;
 
-      const result = await contract.verifyPassword(name, password);
-      if (result)
-        authAdmin(name, password);
+      const role = (await contract.get_user_type(name)).toNumber();
+
+      if (role === -1) {
+        setAlertMessage(`${name} is not present`);
+        return;
+      }
+
+      let type = role === 1 ? 1 : 2;
+      const result = await contract.verifyPassword(name, password, type);
+      const no_error = await contract.no_error();
+
+      if (result === no_error)
+        authAdmin(name, password, role);
       else {
-        console.log('wrong password or username');
-        authAdmin(null, null);
+        setAlertMessage(result)
+        authAdmin(null, null, -1);
       }
     }
     catch (err) {
       console.log(err);
-      authAdmin(null, null);
+      authAdmin(null, null, -1);
+      setAlertMessage("Error while logging in.")
     }
   }
 

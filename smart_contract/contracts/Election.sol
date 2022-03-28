@@ -300,6 +300,20 @@ contract Election {
     }
   }
 
+  // function for getting type of user for logging in
+  function get_user_type(string memory _username) public view returns (int) {
+    // for admin
+    if (keccak256(bytes(_username)) == keccak256(bytes(adminUsername)))
+      return 1;
+
+    // for executor
+    if (executors[_username].role != 0) {
+      return int(executors[_username].role + 1);
+    }
+
+    return -1;
+  }
+
   // returns the total number of votes casted since the total_votes variable is private 
   function get_total_votes() public view returns (uint count) {
     return totalVotes;
