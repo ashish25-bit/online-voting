@@ -46,6 +46,10 @@ contract Election {
   // array for keeping the executors
   string[] public executor_names;
 
+  // error messages
+  string[] private executor_messages;
+  string[] private password_messages;
+  string public no_error;
 
   constructor() public {
     // default election administrator credentials
@@ -58,18 +62,27 @@ contract Election {
     addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1");
     addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha");
     addCandidate("Congress", "Congress hand in hand with the common man", "Rahul Gandhi\nMan Mohan Singh\nSonia Gandhi");
+
+    // adding error messages
+    // for executor
+    executor_messages.push("Username already exists");
+    executor_messages.push("Role value can only be Viewer or Editor");
+    executor_messages.push("Username does not exists");
+    // for validating password
+    password_messages.push("Username or Password for admin is wrong");
+    password_messages.push("Username or Password for executor is wrong");
+
+    no_error = "NA";
   }
 
-  // this function will return the current timestamp
-  function timestamp() public view returns (uint256) {
-    return block.timestamp;
-  }
 
+  /**
+    CANDIDATE FUNCTIONS
+  */
   // adding the new political participant
-  function addCandidate(string memory _partyName, string memory _partyDescription, string memory _leads) public returns (bool) {
+  function addCandidate(string memory _partyName, string memory _partyDescription, string memory _leads) public {
     candidateCount++;
     candidates[candidateCount] = Candidate(candidateCount, _partyName, _partyDescription, _leads, 0);
-    return true;
   }
 
   // for editing/updating the candidate data
@@ -95,6 +108,96 @@ contract Election {
     delete candidates[_id];
   }
 
+  // to check whether the candidate id is present in the blockchain
+  function validate_candidate_id(uint _id) public view returns (bool) {
+    if (candidates[_id].id == 0)
+      return false;
+
+    return true;
+  }
+
+
+  /**
+    EXECUTOR FUNCTIONS
+  */
+  // adding a new executor
+  function addExecutor(string memory _username, string memory _password, uint _role) public {
+    if (executors[_username].role != 0)
+      return;
+
+    if (_role <= 0 || _role >= 3)
+      return;
+
+    executor_names.push(_username);
+    executors[_username] = Executor(_username, _password, _role);
+  }
+
+  // editing the executor data
+  function editExecutorRole(string memory _name, uint _role) public {
+    if (executors[_name].role == 0)
+      return;
+
+    if (_role <= 0 || _role >= 3)
+      return;
+
+    executors[_name].role = _role;
+  }
+
+  function deleteExecutor(string memory _name) public {
+    if (executors[_name].role == 0)
+      return;
+
+    uint index = get_executor_index(_name);
+
+    if (index >= executor_names.length)
+      return;
+
+    executor_names[index] = executor_names[executor_names.length - 1];
+    executor_names.pop();
+    delete executors[_name];
+  }
+
+  // function for validating the executor data before adding or editing
+  function validate_executor_data(uint _type, string memory _username, uint _role) public view returns (string memory) {
+    // adding new executor
+    if (_type == 1) {
+      if (executors[_username].role != 0)
+        return executor_messages[0];
+
+      if (_role <= 0 || _role >= 3)
+        return executor_messages[1];
+    }
+
+    // editing existing executor
+    else if (_type == 2) {
+      if (executors[_username].role == 0)
+        return executor_messages[2];
+
+      if (_role <= 0 || _role >= 3)
+        return executor_messages[1];
+    }
+
+    return no_error;
+  }
+
+  // to get the total number of executors added by the admininstrator
+  function executorArrayLength() public view returns(uint count) {
+    return executor_names.length;
+  }
+
+  function get_executor_index(string memory _name) private view returns (uint) {
+    for (uint i = 0 ; i < executor_names.length; i++) {
+      if (keccak256(bytes(_name)) == keccak256(bytes(executor_names[i])))
+        return i;
+    }
+
+    return executor_names.length + 1;
+  }
+
+
+  /**
+    VOTING LOGIC
+  */
   // this is the main function for the application
   // this will handle the vote logic of the appliation
   // voter id number and the candidate id is required as arguments to this function
@@ -138,22 +241,10 @@ contract Election {
     return 0;
   }
 
-  // returns the total number of votes casted since the total_votes variable is private 
-  function get_total_votes() public view returns (uint count) {
-    return totalVotes;
-  }
 
-  // verifying the username and password for the administrator or the executors
-  function verifyPassword(string memory _username, string memory _password) public view returns (bool) {
-    if (
-      keccak256(bytes(_username)) == keccak256(bytes(adminUsername)) &&
-      keccak256(bytes(_password)) == keccak256(bytes(adminPassword))
-    )
-      return true;
-
-    return false;
-  }
-
+  /**
+    MISCELLANEOUS FUNCTIONS
+  */
   // add the current timestamp and check that the start timestamp is valid
   function changeStartDate(uint256 _timestamp) public {
     startTimestamp = _timestamp;
@@ -164,65 +255,58 @@ contract Election {
     endTimestamp = _timestamp;
   }
 
+  // verifying the username and password for the administrator or the executors
+  function verifyPassword(string memory _username, string memory _password, uint _type) public view returns (string memory) {
+    // for admin
+    if (_type == 1) {
+      if (
+        keccak256(bytes(_username)) == keccak256(bytes(adminUsername)) &&
+        keccak256(bytes(_password)) == keccak256(bytes(adminPassword))
+      )
+        return no_error;
+
+      return password_messages[0];
+    }
+
+    // for executor
+    else if (_type == 2) {
+      if (executors[_username].role == 0)
+        return executor_messages[2];
+
+      if (keccak256(bytes(_password)) == keccak256(bytes(executors[_username].password)))
+        return no_error;
+
+      return password_messages[1];
+    }
+
+    return no_error;
+  }
+
   // change password
   // _type == 1 -> administrator
   // _type == 2 -> executor
-  function changePassword(string memory _name, string memory _new_password, uint _type) public returns (bool) {
+  function changePassword(string memory _name, string memory _new_password, uint _type) public {
     // for administrator
     if (_type == 1) {
-      if (keccak256(bytes(_name)) == keccak256(bytes(adminUsername))) {
-        adminPassword = _new_password;
-        return true;
-      }
-      return false;
+      adminPassword = _new_password;
     }
 
     // for the executor
     if (_type == 2) {
       if (executors[_name].role == 0)
-        return false;
+        return;
 
       executors[_name].password = _new_password;
-      return true;
     }
-
-    return false;
   }
 
-  // adding a new executor
-  function addExecutor(string memory _username, string memory _password, uint _role) public returns (bool) {
-    if (executors[_username].role != 0)
-      return false;
-
-    if (_role <= 0 || _role >= 3)
-      return false;
-
-    executor_names.push(_username);
-    executors[_username] = Executor(_username, _password, _role);
-    return true;
+  // returns the total number of votes casted since the total_votes variable is private 
+  function get_total_votes() public view returns (uint count) {
+    return totalVotes;
   }
 
-  // editing the executor data
-  function editExecutorRole(string memory _name, uint _role) public returns (bool) {
-    if (executors[_name].role == 0)
-      return false;
-
-    if (_role <= 0 || _role >= 3)
-      return false;
-
-    executors[_name].role = _role;
-    return true;
-  }
-
-  // function deleteExecutor(string memory _name) public returns (bool) {
-  //   if (executors[_name].role == 0)
-  //     return false;
-
-  //   return true;
-  // }
-
-  // to get the total number of executors added by the admininstrator
-  function executorArrayLength() public view returns(uint count) {
-    return executor_names.length;
+  // this function will return the current timestamp
+  function timestamp() public view returns (uint256) {
+    return block.timestamp;
   }
 }
