@@ -29,7 +29,6 @@ function ExecutorListComponent() {
     async function fetchData() {
       try {
         let result = await getAllExecutors();
-        console.log(result)
         setExecutorData(result);
       }
       catch (err) {

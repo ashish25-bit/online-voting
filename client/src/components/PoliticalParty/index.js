@@ -2,8 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useElection } from '../../context/ElectionContext';
 import Loader from '../Loader';
 import { Link } from 'react-router-dom';
+import useTitle from '../../hooks/useTitle';
 
 function PoliticalParties() {
+  useTitle('Political Parties');
+
   const { getEthereumContract } = useElection();
   const [isLoading, setIsLoading] = useState(true);
   const [parties, setParties] = useState([]);

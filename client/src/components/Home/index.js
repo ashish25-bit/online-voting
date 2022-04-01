@@ -1,7 +1,9 @@
+import useTitle from '../../hooks/useTitle';
 import { useElection } from '../../context/ElectionContext';
 
 function Home() {
   const { getEthereumContract } = useElection();
+  useTitle('Home Page');
 
   async function clickHandler() {
     try {

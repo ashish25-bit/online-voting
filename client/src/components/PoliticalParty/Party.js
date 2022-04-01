@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useElection } from "../../context/ElectionContext";
+import useTitle from "../../hooks/useTitle";
 import Loader from "../Loader";
 
 function Party() {
   const { id } = useParams();
+  useTitle(`Political Party: ${id}`);
+
   const { getEthereumContract } = useElection();
 
   const [candidateData, setCandidateData] = useState({

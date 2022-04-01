@@ -27,6 +27,9 @@
 }
 
 .add-participant-container,
+.change-password-container,
+.change-time-container,
+.election-timing,
 .add-executor-container {
   margin: 10px 0;
   margin-bottom: 30px;
@@ -36,6 +39,8 @@
 
 .add-participant-container > input,
 .add-executor-container > input,
+.change-password-container > input,
+.change-time-container > input,
 .add-executor-container select {
   padding: 10px;
   border-radius: 5px;
@@ -43,6 +48,8 @@
 
 .add-participant-container > button,
 .add-executor-container > button,
+.change-password-container > button,
+.change-time-container > button,
 .add-participant-container > .add-leader-container > button {
 padding: 10px;
   border-radius: 5px;

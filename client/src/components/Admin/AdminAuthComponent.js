@@ -4,8 +4,12 @@ import { useElection } from "../../context/ElectionContext";
 import { useAlert } from "../../context/AlterContext";
 import AddPartyComponent from "./AddPartyComponent";
 import ExecutorListComponent from "./ExecutorListComponent";
+import ChangePassword from "./ChangePassword";
+import useTitle from "../../hooks/useTitle";
 
 function AdminAuthComponent({ username }) {
+  useTitle('Admin - Dashboard');
+
   const addexecutor_name = useRef();
   const addexecutor_password = useRef();
   const addexecutor_role = useRef();
@@ -81,6 +85,18 @@ function AdminAuthComponent({ username }) {
         Logout
       </button>
 
+      <div className="election-timing">
+        <h1>Election Timings</h1>
+      </div>
+
+      <div className="change-time-container">
+        <h1>Change Election time</h1>
+        <input type={"datetime-local"} />
+        <input type={"datetime-local"} />
+        <button>Update Election Timing</button>
+      </div>
+
+      <ChangePassword />
       <AddPartyComponent />
 
       <div className="add-executor-container">

@@ -3,8 +3,10 @@ import React, { useEffect, useRef } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { useElection } from '../../context/ElectionContext';
 import { useAlert } from '../../context/AlterContext';
+import useTitle from '../../hooks/useTitle';
 
 function AdminLoginComponent() {
+  useTitle('Login - Admin');
 
   const userNameRef = useRef();
   const passwordRef = useRef();
@@ -13,8 +15,8 @@ function AdminLoginComponent() {
   const { setAlertMessage } = useAlert();
 
   useEffect(() => {
-    userNameRef.current.value = "Ashish";
-    passwordRef.current.value = "1234";
+    userNameRef.current.value = "Admin";
+    passwordRef.current.value = "1234567890";
   }, [])
 
   async function loginAdmin(e) {
@@ -44,7 +46,7 @@ function AdminLoginComponent() {
       }
     }
     catch (err) {
-      console.log(err);
+      console.trace(err);
       authAdmin(null, null, -1);
       setAlertMessage("Error while logging in.")
     }

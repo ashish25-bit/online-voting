@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useElection } from "../../context/ElectionContext";
+import useTitle from "../../hooks/useTitle";
 import Loader from "../Loader";
 
 function Voter() {
+  useTitle('Secure Online Voting');
+
   const { getEthereumContract } = useElection();
   const [parties, setParties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
