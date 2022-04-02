@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useElection } from '../../context/ElectionContext';
 import { useAlert } from '../../context/AlterContext';
 import { currTimestamp } from '../../utils/constant';
+import Loader from '../Loader';
+import ElectionResult from '../ElectionResult';
 
 function ElectionData() {
   const { getEthereumContract } = useElection();
@@ -12,6 +14,7 @@ function ElectionData() {
     endTime: 0,
     data: []
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function setup() {
@@ -42,6 +45,7 @@ function ElectionData() {
         }
 
         setElectionData(prevState => ({ ...prevState, startTime, endTime, data }));
+        setIsLoading(false);
       }
       catch (err) {
         console.log(err);
@@ -54,16 +58,22 @@ function ElectionData() {
 
   return (
     <div className="election-data">
-      <h1>Election Timings</h1>
       {
-        electionData && electionData?.constructor?.name === "String" ?
-        <p><b>{electionData}</b></p> :
-        <>
-          <p>Start Time: {new Date(electionData.startTime).toString()}</p>
-          <p>End Time: {new Date(electionData.endTime).toString()}</p>
-        </>
+        isLoading ? <Loader /> : (
+          <>
+            <h1>Election Timings</h1>{
+              electionData && electionData?.constructor?.name === "String" ?
+              <p><b>{electionData}</b></p> :
+              <>
+                <p>Start Time: {new Date(electionData.startTime).toString()}</p>
+                <p>End Time: {new Date(electionData.endTime).toString()}</p>
+                <ElectionResult data={electionData.data} />
+              </>
+            }
+          </>
+        )
       }
-    </div>
+      </div>
   );
 }
 

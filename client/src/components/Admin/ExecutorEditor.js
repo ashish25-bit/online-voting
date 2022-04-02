@@ -5,7 +5,7 @@ import ChangePassword from './ChangePassword';
 import ElectionData from './ElectionData';
 import ExecutorListComponent from './ExecutorListComponent';
 
-function ExecutorEditor({ username, getEthereumContract }) {
+function ExecutorEditor({ username }) {
   const { authAdmin } = useAdmin();
   useTitle(`${username} - Dashboard`);
 

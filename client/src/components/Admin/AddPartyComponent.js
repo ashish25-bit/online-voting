@@ -30,6 +30,13 @@ function AddPartyComponent() {
       let leaders = leadersData.join("\n");
 
       const { electionContract: contract } = await getEthereumContract();
+      const action = await contract.validate_action(currTimestamp());
+
+      if (action === false) {
+        setAlertMessage("Cannot add participant now since the election is ongoing");
+        return;
+      }
+
       await contract.addCandidate(name, desc, leaders, currTimestamp());
 
       setAlertMessage("Data Added");

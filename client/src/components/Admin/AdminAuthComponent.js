@@ -73,6 +73,13 @@ function AdminAuthComponent({ username }) {
         return;
       }
 
+      const action = await contract.validate_action(currTimestamp());
+
+      if (action === false) {
+        setAlertMessage("Cannot alter time now since the election is ongoing");
+        return;
+      }
+
       startTime = new Date(startTime).getTime();
       endTime = new Date(endTime).getTime();
 
@@ -84,6 +91,7 @@ function AdminAuthComponent({ username }) {
       }
 
       await contract.changeElectionTiming(startTime, endTime, currTimestamp());
+      setAlertMessage("Time updated successfully");
     }
     catch (err) {
       console.log(err);

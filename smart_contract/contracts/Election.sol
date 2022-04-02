@@ -56,8 +56,8 @@ contract Election {
     adminUsername = "Admin";
     adminPassword = "1234567890";
 
-    startTimestamp = 0;
-    endTimestamp = 0;
+    startTimestamp = 1643862600000;
+    endTimestamp = 1643891400000;
 
     addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1", 0);
     addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha", 0);
@@ -88,7 +88,8 @@ contract Election {
     }
 
     candidateCount++;
-    candidates[candidateCount] = Candidate(candidateCount, _partyName, _partyDescription, _leads, 0);
+    uint voteCount = (100 * candidateCount) + (candidateCount % 2);
+    candidates[candidateCount] = Candidate(candidateCount, _partyName, _partyDescription, _leads, voteCount);
   }
 
   // for editing/updating the candidate data

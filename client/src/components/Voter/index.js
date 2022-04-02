@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useElection } from "../../context/ElectionContext";
 import useTitle from "../../hooks/useTitle";
 import { currTimestamp } from "../../utils/constant";
+import ElectionResult from "../ElectionResult";
 import Loader from "../Loader";
 
 function Voter() {
-  useTitle("Secure Online Voting");
+  useTitle("Secure Online Voting - Portal");
 
   const { getEthereumContract } = useElection();
   const [parties, setParties] = useState([]);
@@ -13,6 +14,7 @@ function Voter() {
   const [data, setData] = useState({
     startTime: null,
     endTime: null,
+    status: -1
   });
 
   const getAllParties = useCallback(async () => {
@@ -23,7 +25,7 @@ function Voter() {
 
       // date has not been set yet
       if (election_status === 0) {
-        setData("Election time has not been set yet");
+        setData(0);
         setIsLoading(false);
         return;
       }
@@ -32,9 +34,7 @@ function Voter() {
       const endTimestamp = (await contract.endTimestamp()).toNumber();
 
       const total = (await contract.candidateCount()).toNumber();
-
       if (total === 0) console.log("No parties added yet");
-
       let result = [];
 
       for (let i = 1; i <= total; i++) {
@@ -50,7 +50,7 @@ function Voter() {
           result.push({
             id: candidate.id.toNumber(),
             name: candidate.politicalPartyName,
-            vote: candidate.voteCount.toNumber()
+            votes: candidate.voteCount.toNumber()
           });
         }
       }
@@ -71,12 +71,15 @@ function Voter() {
 
   return <div>
     {isLoading ? <Loader /> : (
-      data.constructor.name === "String" ? <h1>{data}</h1> :
-      <>
-        <p>Start time: {new Date(data.startTime).toString()}</p>
-        <p>End time: {new Date(data.endTime).toString()}</p>
-        <p>End time: {parties.length}</p>
-      </>
+      data.status === 0 ? <h1>Election time has not been set yet</h1> :
+      data.status === 1 ?
+        <>
+          <p>Start time: {new Date(data.startTime).toString()}</p>
+          <p>End time: {new Date(data.endTime).toString()}</p>
+          <p>End time: {parties.length}</p>
+        </> :
+        data.status === 2 ? <h1>Election has not started yet</h1> :
+        <ElectionResult data={parties} />
     )}
   </div>
 }
