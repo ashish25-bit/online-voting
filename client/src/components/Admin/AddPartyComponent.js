@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useElection } from "../../context/ElectionContext";
 import { useAlert } from "../../context/AlterContext";
+import { currTimestamp } from "../../utils/constant";
 
 function AddPartyComponent() {
   const nameRef = useRef();
@@ -29,7 +30,7 @@ function AddPartyComponent() {
       let leaders = leadersData.join("\n");
 
       const { electionContract: contract } = await getEthereumContract();
-      await contract.addCandidate(name, desc, leaders);
+      await contract.addCandidate(name, desc, leaders, currTimestamp());
 
       setAlertMessage("Data Added");
 

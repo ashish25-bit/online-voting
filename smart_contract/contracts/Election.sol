@@ -59,9 +59,9 @@ contract Election {
     startTimestamp = 0;
     endTimestamp = 0;
 
-    addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1");
-    addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha");
-    addCandidate("Congress", "Congress hand in hand with the common man", "Rahul Gandhi\nMan Mohan Singh\nSonia Gandhi");
+    addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1", 0);
+    addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha", 0);
+    addCandidate("Congress", "Congress hand in hand with the common man", "Rahul Gandhi\nMan Mohan Singh\nSonia Gandhi", 0);
 
     // adding error messages
     // for executor
@@ -80,7 +80,13 @@ contract Election {
     CANDIDATE FUNCTIONS
   */
   // adding the new political participant
-  function addCandidate(string memory _partyName, string memory _partyDescription, string memory _leads) public {
+  function addCandidate(string memory _partyName, string memory _partyDescription, string memory _leads, uint256 _curr_timestamp) public {
+    if (_curr_timestamp != 0) {
+      bool is_valid_action = validate_action(_curr_timestamp);
+      if (is_valid_action == false)
+        return;
+    }
+
     candidateCount++;
     candidates[candidateCount] = Candidate(candidateCount, _partyName, _partyDescription, _leads, 0);
   }
@@ -89,7 +95,12 @@ contract Election {
   // type == "name" -> political party name
   // type == "desc" -> political party description
   // type == "leader" -> political party leaders
-  function editCandidate(uint _id, string memory _type, string memory _data) public {
+  function editCandidate(uint _id, string memory _type, string memory _data, uint256 _curr_timestamp) public {
+    bool is_valid_action = validate_action(_curr_timestamp);
+
+    if (is_valid_action == false)
+      return;
+
     if (candidates[_id].id == 0)
       return;
 
@@ -103,7 +114,12 @@ contract Election {
       candidates[_id].leaders = _data;
   }
 
-  function deleteCandidate(uint _id) public {
+  function deleteCandidate(uint _id, uint256 _curr_timestamp) public {
+    bool is_valid_action = validate_action(_curr_timestamp);
+
+    if (is_valid_action == false)
+      return;
+
     candidateCount--;
     delete candidates[_id];
   }
@@ -229,6 +245,11 @@ contract Election {
     candidates[_candidateID].voteCount++;
   }
 
+  // required argument is the voter id
+  // returns an integer
+  // return value == 1: means that the voter id is already present in the mapping
+  // return value == 2: means that the device address is already present in the mapping
+  // return value == 0: means that the user is good to go
   function validate_system_and_id(string memory _voterId) public view returns (uint) {
     if (voter_ids[_voterId] == true) {
       return 1;
@@ -241,18 +262,68 @@ contract Election {
     return 0;
   }
 
+  // return 0: election time has not been set yet
+  // return 1: election is ongoing
+  // return 2: election has not started yet
+  // return 3: election has not ended yet
+  function voting_status(uint256 _curr_timestamp) public view returns (int) {
+    if (startTimestamp == 0 || endTimestamp == 0) {
+      return 0;
+    }
+
+    else if (_curr_timestamp > endTimestamp) {
+      return 3;
+    }
+
+    else if (_curr_timestamp < startTimestamp) {
+      return 2;
+    }
+
+    return 1;
+  }
+
 
   /**
     MISCELLANEOUS FUNCTIONS
   */
   // add the current timestamp and check that the start timestamp is valid
-  function changeStartDate(uint256 _timestamp) public {
-    startTimestamp = _timestamp;
+  function changeElectionTiming(uint256 _start_timestamp, uint _end_timestamp, uint256 _curr_timestamp) public {
+    bool is_valid_action = validate_action(_curr_timestamp);
+
+    if (is_valid_action == false)
+      return;
+
+    startTimestamp = _start_timestamp;
+    endTimestamp = _end_timestamp;
+    totalVotes = 0;
   }
 
-  // add the current timestamp and check the end timestamp is valid
-  function changeEndDate(uint256 _timestamp) public {
-    endTimestamp = _timestamp;
+  function validate_timestamp(uint256 _start_timestamp, uint _end_timestamp, uint256 _curr_timestamp) public view returns (string memory) {
+    if (_start_timestamp < _curr_timestamp || _end_timestamp < _curr_timestamp) {
+      return "Selected time has already gone";
+    }
+
+    if (_curr_timestamp < _start_timestamp && _curr_timestamp < endTimestamp)
+      return no_error;
+
+    bool is_valid_action = validate_action(_curr_timestamp);
+    if (is_valid_action == false) {
+      return "Cannot change the timing since the election is going on";
+    }
+
+    if (_start_timestamp >= _end_timestamp) {
+      return "Start time should be less than End time";
+    }
+
+    if ((_end_timestamp - _start_timestamp) < 3600000) {
+      return "Minimum Window for voting should be atleast one hour";
+    }
+
+    if ((_end_timestamp - _start_timestamp) > 36000000) {
+      return "Window for voting should not exceed 10 hours";
+    }
+
+    return no_error;
   }
 
   // verifying the username and password for the administrator or the executors
@@ -322,5 +393,15 @@ contract Election {
   // this function will return the current timestamp
   function timestamp() public view returns (uint256) {
     return block.timestamp;
+  }
+
+  function validate_action(uint256 _curr_timestamp) public view returns (bool) {
+    if (startTimestamp == 0 || endTimestamp == 0)
+      return true;
+
+    if (_curr_timestamp >= startTimestamp && _curr_timestamp <= endTimestamp)
+      return false;
+
+    return true;
   }
 }

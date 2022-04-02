@@ -28,6 +28,7 @@ function AdminLoginComponent() {
       const password = passwordRef.current.value;
 
       const role = (await contract.get_user_type(name)).toNumber();
+      console.log(role)
 
       if (role === -1) {
         setAlertMessage(`${name} is not present`);

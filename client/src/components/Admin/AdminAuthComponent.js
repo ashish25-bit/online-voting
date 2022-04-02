@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useRef } from "react";
 import { useAdmin } from "../../context/AdminContext";
 import { useElection } from "../../context/ElectionContext";
 import { useAlert } from "../../context/AlterContext";
@@ -6,6 +6,8 @@ import AddPartyComponent from "./AddPartyComponent";
 import ExecutorListComponent from "./ExecutorListComponent";
 import ChangePassword from "./ChangePassword";
 import useTitle from "../../hooks/useTitle";
+import ElectionData from "./ElectionData";
+import { currTimestamp } from "../../utils/constant";
 
 function AdminAuthComponent({ username }) {
   useTitle('Admin - Dashboard');
@@ -13,29 +15,12 @@ function AdminAuthComponent({ username }) {
   const addexecutor_name = useRef();
   const addexecutor_password = useRef();
   const addexecutor_role = useRef();
+  const startTime_ref = useRef();
+  const endTime_ref = useRef();
 
   const { getEthereumContract } = useElection();
   const { authAdmin } = useAdmin();
   const { setAlertMessage } = useAlert();
-
-  const getAllExecutors = useCallback(async () => {
-    const { electionContract: contract } = await getEthereumContract();
-    const executorLength = (await contract.executorArrayLength()).toNumber();
-    let result = [];
-
-    for (let i = 0; i < executorLength; i++) {
-      try {
-        const name = await contract.executor_names(i);
-        const role = (await contract.executors(name)).role.toNumber();
-        result.push({ name, role });
-      }
-      catch (_err) {
-        console.log(_err);
-      }
-    }
-
-    return result;
-  }, [getEthereumContract]);
 
   async function addExecutor() {
     try {
@@ -63,9 +48,6 @@ function AdminAuthComponent({ username }) {
         return;
       }
 
-      await contract.addExecutor(name, password, role);
-      const executors = await getAllExecutors();
-      console.log(executors);
       setAlertMessage("Executor added successfully");
 
       addexecutor_name.current.value = "";
@@ -78,6 +60,37 @@ function AdminAuthComponent({ username }) {
     }
   }
 
+  async function updateTime() {
+    try {
+      const { electionContract: contract } = await getEthereumContract();
+      const no_error = await contract.no_error();
+
+      let startTime = startTime_ref.current.value;
+      let endTime = endTime_ref.current.value;
+
+      if (startTime === "" || endTime === "") {
+        setAlertMessage("Time cannot be empty");
+        return;
+      }
+
+      startTime = new Date(startTime).getTime();
+      endTime = new Date(endTime).getTime();
+
+      const is_data_valid = await contract.validate_timestamp(startTime, endTime, currTimestamp());
+
+      if (is_data_valid !== no_error) {
+        setAlertMessage(is_data_valid);
+        return;
+      }
+
+      await contract.changeElectionTiming(startTime, endTime, currTimestamp());
+    }
+    catch (err) {
+      console.log(err);
+      setAlertMessage('Unable to update election timing');
+    }
+  }
+
   return (
     <div>
       <p style={{ textTransform: "uppercase" }}>User: {username}</p>
@@ -85,15 +98,13 @@ function AdminAuthComponent({ username }) {
         Logout
       </button>
 
-      <div className="election-timing">
-        <h1>Election Timings</h1>
-      </div>
+      <ElectionData />
 
       <div className="change-time-container">
         <h1>Change Election time</h1>
-        <input type={"datetime-local"} />
-        <input type={"datetime-local"} />
-        <button>Update Election Timing</button>
+        <input ref={startTime_ref} type={"datetime-local"} />
+        <input ref={endTime_ref} type={"datetime-local"} />
+        <button onClick={updateTime}>Update Election Timing</button>
       </div>
 
       <ChangePassword />
