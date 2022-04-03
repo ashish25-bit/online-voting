@@ -56,8 +56,8 @@ contract Election {
     adminUsername = "Admin";
     adminPassword = "1234567890";
 
-    startTimestamp = 1643862600000;
-    endTimestamp = 1643891400000;
+    startTimestamp = 1648960200000;
+    endTimestamp = 1648989000000;
 
     addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1", 0);
     addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha", 0);
@@ -131,6 +131,19 @@ contract Election {
       return false;
 
     return true;
+  }
+
+  function reset() public {
+    for (uint _id=1; _id <= candidateCount; _id++) {
+      if (candidates[_id].id != 0) {
+        delete candidates[_id];
+      }
+    }
+
+    totalVotes = 0;
+    candidateCount = 0;
+    startTimestamp = 0;
+    endTimestamp = 0;
   }
 
 
@@ -234,6 +247,10 @@ contract Election {
       return;
     }
 
+    if (candidates[_candidateID].id == 0) {
+      return;
+    }
+
     // check for the device address in the voter_address mapping
     if (voter_addresses[msg.sender] == true) {
       return;
@@ -249,7 +266,7 @@ contract Election {
   // required argument is the voter id
   // returns an integer
   // return value == 1: means that the voter id is already present in the mapping
-  // return value == 2: means that the device address is already present in the mapping
+  // return value == 2: means that the account address is already present in the mapping
   // return value == 0: means that the user is good to go
   function validate_system_and_id(string memory _voterId) public view returns (uint) {
     if (voter_ids[_voterId] == true) {
@@ -266,7 +283,7 @@ contract Election {
   // return 0: election time has not been set yet
   // return 1: election is ongoing
   // return 2: election has not started yet
-  // return 3: election has not ended yet
+  // return 3: election has ended
   function voting_status(uint256 _curr_timestamp) public view returns (int) {
     if (startTimestamp == 0 || endTimestamp == 0) {
       return 0;
@@ -302,6 +319,10 @@ contract Election {
   function validate_timestamp(uint256 _start_timestamp, uint _end_timestamp, uint256 _curr_timestamp) public view returns (string memory) {
     if (_start_timestamp < _curr_timestamp || _end_timestamp < _curr_timestamp) {
       return "Selected time has already gone";
+    }
+
+    if (_start_timestamp >= _end_timestamp) {
+      return "Start time is after End Time";
     }
 
     if (_curr_timestamp < _start_timestamp && _curr_timestamp < endTimestamp)

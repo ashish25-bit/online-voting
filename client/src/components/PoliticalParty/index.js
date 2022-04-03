@@ -3,6 +3,7 @@ import { useElection } from '../../context/ElectionContext';
 import Loader from '../Loader';
 import { Link } from 'react-router-dom';
 import useTitle from '../../hooks/useTitle';
+import './index.css';
 
 function PoliticalParties() {
   useTitle('Political Parties');
@@ -44,7 +45,7 @@ function PoliticalParties() {
   }, [setData]);
 
   return (
-    <div>
+    <div className='political-party-container'>
       <h1>Political Parties participating in the election:</h1>
       {isLoading && <Loader />}
       {!isLoading && parties.length === 0 && <>No parties added yet</>}
@@ -54,10 +55,9 @@ function PoliticalParties() {
         parties.map(({ id, name, description }) => {
           return (
             <div key={id}>
-              <p>Name: {name}</p>
+              <h2>{name}</h2>
               <p>Description: {description}</p>
               <Link to={`/party/${id}`}>Visit {name}</Link>
-              <hr />
             </div>
           )
         })

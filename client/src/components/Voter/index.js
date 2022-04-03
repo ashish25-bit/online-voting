@@ -1,21 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { useElection } from "../../context/ElectionContext";
+import { useAlert } from "../../context/AlterContext";
 import useTitle from "../../hooks/useTitle";
 import { currTimestamp } from "../../utils/constant";
 import ElectionResult from "../ElectionResult";
 import Loader from "../Loader";
+import "./index.css";
 
 function Voter() {
   useTitle("Secure Online Voting - Portal");
 
-  const { getEthereumContract } = useElection();
+  const { getEthereumContract, currentAccount } = useElection();
+  const { setAlertMessage } = useAlert();
   const [parties, setParties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState({
     startTime: null,
     endTime: null,
-    status: -1
+    status: 0,
   });
+  const [selected, setSelected] = useState(0);
 
   const getAllParties = useCallback(async () => {
     try {
@@ -25,7 +29,7 @@ function Voter() {
 
       // date has not been set yet
       if (election_status === 0) {
-        setData(0);
+        setData(prevState => ({...prevState, status: 0}));
         setIsLoading(false);
         return;
       }
@@ -56,7 +60,7 @@ function Voter() {
       }
 
       setParties(result);
-      setData(prevState => ({ ...prevState, startTime: startTimestamp, endTime: endTimestamp }));
+      setData((prevState) => ({ ...prevState, startTime: startTimestamp, endTime: endTimestamp, status: election_status}));
       setIsLoading(false);
     }
     catch (err) {
@@ -69,19 +73,86 @@ function Voter() {
     getAllParties();
   }, [getAllParties]);
 
-  return <div>
-    {isLoading ? <Loader /> : (
-      data.status === 0 ? <h1>Election time has not been set yet</h1> :
-      data.status === 1 ?
+  async function vote(e) {
+    try {
+      if (selected === 0) {
+        setAlertMessage("Nothing is selected");
+        return;
+      }
+
+      e.target.disabled = true;
+
+      const voter_id = "1235";
+      const { electionContract: contract, provider } = await getEthereumContract();
+
+      const status = (await contract.validate_system_and_id(voter_id, { from: currentAccount })).toNumber();
+
+      if (status === 1) {
+        setAlertMessage(`Already voted with the voter id: ${voter_id}`);
+        return;
+      }
+      if (status === 2) {
+        setAlertMessage(`Already voted with the account: ${currentAccount}`);
+        return;
+      }
+
+      const is_valid_candidate_id = await contract.validate_candidate_id(selected);
+      if (!is_valid_candidate_id) {
+        setAlertMessage("Selected candidate is not valid. Please refresh the page");
+        return;
+      }
+
+      const result = await contract.vote(voter_id, selected, currTimestamp());
+      await provider.waitForTransaction(result.hash);
+      console.log(result.hash);
+    }
+    catch (err) {
+      setAlertMessage("Something went wrong");
+      console.log(err)
+    }
+  }
+
+  function selectCandidate(id) {
+    if (id === selected) {
+      setSelected(0);
+    }
+    else {
+      setSelected(id);
+    }
+  }
+
+  return (
+    <div>
+      {isLoading ? (
+        <Loader />
+      ) : data.status === 0 ? (
+        <h1>Election time has not been set yet</h1>
+      ) : data.status === 1 ? (
         <>
+          <h1>Election is ongoing</h1>
           <p>Start time: {new Date(data.startTime).toString()}</p>
           <p>End time: {new Date(data.endTime).toString()}</p>
-          <p>End time: {parties.length}</p>
-        </> :
-        data.status === 2 ? <h1>Election has not started yet</h1> :
+          <div className="voting-container">
+            <h2>Vote Here:</h2>
+            {parties.map((party, index) =>
+              <div
+                key={index}
+                className={selected === party.id ? "active" : null}
+                onClick={() => selectCandidate(party.id)}
+              >
+                {party.name}
+              </div>
+            )}
+            <button onClick={vote}>Vote</button>
+          </div>
+        </>
+      ) : data.status === 2 ? (
+        <h1>Election has not started yet</h1>
+      ) : (
         <ElectionResult data={parties} />
-    )}
-  </div>
+      )}
+    </div>
+  );
 }
 
 export default Voter;

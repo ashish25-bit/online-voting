@@ -1,0 +1,16 @@
+.political-party-container {
+  display: grid;
+  grid-gap: 20px;
+}
+
+.political-party-container div {
+  padding: 15px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  border-radius: 5px;
+  display: grid;
+  grid-gap: 5px;
+}
+
+.political-party-container p {
+  color: #676666;
+}

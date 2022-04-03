@@ -3,8 +3,6 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 function ElectionResult({ data }) {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
 
-  const values = data.map(d => {return { name: d.name, value: d.votes }});
-
   const CustomTooltip = ({ active, payload }) => {
     if (active) {
       return (
@@ -25,27 +23,25 @@ function ElectionResult({ data }) {
   };
 
   return (
-    <div>
+    <>
       <h1>Election Result</h1>
-      <PieChart width={730} height={300}>
+      <PieChart width={300} height={300}>
         <Pie
-          data={values}
+          data={data}
           color="#000000"
-          dataKey="value"
+          dataKey="votes"
           nameKey="name"
-          cx="50%"
-          cy="50%"
           outerRadius={120}
           fill="#8884d8"
         >
-          {values.map((_, index) => (
+          {data.map((_, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
         <Tooltip content={<CustomTooltip />} />
         <Legend />
       </PieChart>
-    </div>
+    </>
   );
 }
 

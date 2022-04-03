@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useElection } from "../../context/ElectionContext";
 import useTitle from "../../hooks/useTitle";
 import Loader from "../Loader";
+import './index.css';
+
 
 function Party() {
   const { id } = useParams();

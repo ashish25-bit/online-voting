@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useElection } from '../../context/ElectionContext';
-import { useAlert } from '../../context/AlterContext';
-import { currTimestamp } from '../../utils/constant';
-import Loader from '../Loader';
-import ElectionResult from '../ElectionResult';
+import { useEffect, useState } from "react";
+import { useElection } from "../../context/ElectionContext";
+import { useAlert } from "../../context/AlterContext";
+import { currTimestamp } from "../../utils/constant";
+import Loader from "../Loader";
+import ElectionResult from "../ElectionResult";
 
 function ElectionData() {
   const { getEthereumContract } = useElection();
@@ -12,7 +12,8 @@ function ElectionData() {
   const [electionData, setElectionData] = useState({
     startTime: 0,
     endTime: 0,
-    data: []
+    data: [],
+    status: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +45,7 @@ function ElectionData() {
           });
         }
 
-        setElectionData(prevState => ({ ...prevState, startTime, endTime, data }));
+        setElectionData(prevState => ({ ...prevState, startTime, endTime, data, status: has_election_started }));
         setIsLoading(false);
       }
       catch (err) {
@@ -54,26 +55,35 @@ function ElectionData() {
     }
 
     setup();
-  }, [getEthereumContract, setAlertMessage])
+  }, [getEthereumContract, setAlertMessage]);
 
   return (
     <div className="election-data">
-      {
-        isLoading ? <Loader /> : (
-          <>
-            <h1>Election Timings</h1>{
-              electionData && electionData?.constructor?.name === "String" ?
-              <p><b>{electionData}</b></p> :
-              <>
-                <p>Start Time: {new Date(electionData.startTime).toString()}</p>
-                <p>End Time: {new Date(electionData.endTime).toString()}</p>
-                <ElectionResult data={electionData.data} />
-              </>
-            }
-          </>
-        )
-      }
-      </div>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <h1>Election Timings</h1>
+          {electionData.status === 0 ? (
+            <p>
+              <b>Election time has not been set yet</b>
+            </p>
+          ) : electionData.startTime === 2 ? (
+            <p>
+              <b>Election has not started yet</b>
+            </p>
+          ) : (
+            electionData.status === 1 || electionData.status === 3 ?
+            <>
+              <p>Start Time: {new Date(electionData.startTime).toString()}</p>
+              <p>End Time: {new Date(electionData.endTime).toString()}</p>
+              <ElectionResult data={electionData.data} />
+            </> :
+            <h1>Something went wrong</h1>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 
