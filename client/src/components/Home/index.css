@@ -1,0 +1,14 @@
+.home-container {
+  display: grid;
+  gap: 15px;
+}
+
+.home-container > input,
+.home-container > button {
+  padding: 11px;
+  border-radius: 5px;
+}
+
+.home-container > button {
+  text-transform: uppercase;
+}

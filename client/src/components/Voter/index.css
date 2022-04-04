@@ -13,10 +13,15 @@
   border: 1px solid #a4a4a4;
 }
 
-.voting-container div.active {
+.voting-container div.active,
+.voting-container div.hash {
   background-color: #75f87582;
   color: #006200;
   border: 1px solid #006200;
+}
+
+.voting-container div.hash {
+  text-transform: none;
 }
 
 .voting-container button {
@@ -24,4 +29,15 @@
   border-radius: 5px;
   text-transform: uppercase;
   background: #EBE8E8;
+}
+
+.get-epic-container {
+  display: grid;
+  grid-gap: 10px;
+}
+
+.get-epic-container input,
+.get-epic-container button {
+  padding: 10px;
+  border-radius: 5px;
 }

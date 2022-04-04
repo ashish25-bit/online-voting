@@ -56,8 +56,8 @@ contract Election {
     adminUsername = "Admin";
     adminPassword = "1234567890";
 
-    startTimestamp = 1648960200000;
-    endTimestamp = 1648989000000;
+    startTimestamp = 1649099530585;
+    endTimestamp = 1649104200000;
 
     addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1", 0);
     addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha", 0);
@@ -228,32 +228,37 @@ contract Election {
   /**
     VOTING LOGIC
   */
+  // voting event
+  event voteEvent (
+    uint indexed _candidateID
+  );
+
   // this is the main function for the application
   // this will handle the vote logic of the appliation
   // voter id number and the candidate id is required as arguments to this function
   function vote(string memory _voterId, uint _candidateID, uint _currentTimestamp) public {
     // check whether the election time has been set or not
     if (startTimestamp == 0 || endTimestamp == 0) {
-      return;
+      revert("Elections has not started yet");
     }
 
     // check whether the vote within the time frame of the elections
     if (_currentTimestamp < startTimestamp || _currentTimestamp > endTimestamp) {
-      return;
+      revert("Current Timestamp out of bound");
     }
 
     // check for the voter id in the voter_ids mapping
     if (voter_ids[_voterId] == true) {
-      return;
+      revert("Voter id already present in the mapping");
     }
 
     if (candidates[_candidateID].id == 0) {
-      return;
+      revert("Candidate is not valid");
     }
 
     // check for the device address in the voter_address mapping
     if (voter_addresses[msg.sender] == true) {
-      return;
+      revert("Account Address already present in the mapping. Please use another account");
     }
 
     // change the data
@@ -261,6 +266,9 @@ contract Election {
     voter_addresses[msg.sender] = true;
     totalVotes++;
     candidates[_candidateID].voteCount++;
+
+    // trigger event
+    emit voteEvent(_candidateID);
   }
 
   // required argument is the voter id

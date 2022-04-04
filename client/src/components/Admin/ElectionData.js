@@ -23,9 +23,11 @@ function ElectionData() {
         const { electionContract: contract } = await getEthereumContract();
 
         const has_election_started = (await contract.voting_status(currTimestamp())).toNumber();
+        console.log(has_election_started)
 
         if (has_election_started === 0) {
-          setElectionData("Election date has not been set yet");
+          setElectionData(prevState => ({ ...prevState, status: 0 }))
+          setIsLoading(false);
           return;
         }
 
@@ -68,10 +70,12 @@ function ElectionData() {
             <p>
               <b>Election time has not been set yet</b>
             </p>
-          ) : electionData.startTime === 2 ? (
-            <p>
-              <b>Election has not started yet</b>
-            </p>
+          ) : electionData.status === 2 ? (
+            <>
+              <p><b>Election has not started yet</b></p>
+              <p>Start Time: {new Date(electionData.startTime).toString()}</p>
+              <p>End Time: {new Date(electionData.endTime).toString()}</p>
+            </>
           ) : (
             electionData.status === 1 || electionData.status === 3 ?
             <>
@@ -79,7 +83,7 @@ function ElectionData() {
               <p>End Time: {new Date(electionData.endTime).toString()}</p>
               <ElectionResult data={electionData.data} />
             </> :
-            <h1>Something went wrong</h1>
+            <></>
           )}
         </>
       )}

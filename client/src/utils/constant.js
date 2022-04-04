@@ -7,3 +7,5 @@ export const contractAddress = electionContract.networks[5777].address;
 export function currTimestamp() {
   return new Date().getTime();
 }
+
+export const BASE_URL_FLASK_APP = "http://127.0.0.1:5000";
