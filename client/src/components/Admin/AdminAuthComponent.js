@@ -38,7 +38,7 @@ function AdminAuthComponent({ username }) {
         return alert("Role is a required field");
       }
 
-      const { electionContract: contract } = await getEthereumContract();
+      const { electionContract: contract, provider } = await getEthereumContract();
 
       const no_error = await contract.no_error();
       const isValid = await contract.validate_executor_data(1, name, role);
@@ -47,6 +47,9 @@ function AdminAuthComponent({ username }) {
         setAlertMessage(isValid);
         return;
       }
+
+      const res = await contract.addExecutor(name, password, role);
+      await provider.waitForTransaction(res.hash);
 
       setAlertMessage("Executor added successfully");
 
@@ -62,7 +65,7 @@ function AdminAuthComponent({ username }) {
 
   async function updateTime() {
     try {
-      const { electionContract: contract } = await getEthereumContract();
+      const { electionContract: contract, provider } = await getEthereumContract();
       const no_error = await contract.no_error();
 
       let startTime = startTime_ref.current.value;
@@ -90,7 +93,8 @@ function AdminAuthComponent({ username }) {
         return;
       }
 
-      await contract.changeElectionTiming(startTime, endTime, currTimestamp());
+      let res = await contract.changeElectionTiming(startTime, endTime, currTimestamp());
+      await provider.waitForTransaction(res.hash);
       setAlertMessage("Time updated successfully");
     }
     catch (err) {

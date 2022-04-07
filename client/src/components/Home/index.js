@@ -26,6 +26,8 @@ function Home() {
         throw new Error("Transaction hash required");
       }
 
+      setData(prevState => ({ ...prevState, fetched: false }))
+
       let res = await provider.getTransactionReceipt(data);
       if (!res) {
         setData((prevState) => ({ ...prevState, fetched: true, value: null }));

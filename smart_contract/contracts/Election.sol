@@ -56,8 +56,8 @@ contract Election {
     adminUsername = "Admin";
     adminPassword = "1234567890";
 
-    startTimestamp = 1649099530585;
-    endTimestamp = 1649104200000;
+    startTimestamp = 0;
+    endTimestamp = 0;
 
     addCandidate("AAP", "Acchhe beete paanch saal, lage raho Kejriwal", "Arvind Kejriwal\nLeader1", 0);
     addCandidate("BJP", "Acchhe din aane wale hai", "PM Narendra Modi\nAmit Sha", 0);

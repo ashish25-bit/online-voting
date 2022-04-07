@@ -29,7 +29,7 @@ function AddPartyComponent() {
 
       let leaders = leadersData.join("\n");
 
-      const { electionContract: contract } = await getEthereumContract();
+      const { electionContract: contract, provider } = await getEthereumContract();
       const action = await contract.validate_action(currTimestamp());
 
       if (action === false) {
@@ -37,13 +37,14 @@ function AddPartyComponent() {
         return;
       }
 
-      await contract.addCandidate(name, desc, leaders, currTimestamp());
-
-      setAlertMessage("Data Added");
+      const res = await contract.addCandidate(name, desc, leaders, currTimestamp());
 
       nameRef.current.value = "";
       descRef.current.value = "";
       setLeadersData([]);
+
+      await provider.waitForTransaction(res.hash);
+
       setAlertMessage("Participant data added")
     }
     catch (err) {

@@ -13,7 +13,7 @@ function ChangePassword() {
 
   async function changePassword() {
     try {
-      const { electionContract: contract } = await getEthereumContract();
+      const { electionContract: contract, provider } = await getEthereumContract();
       const no_error = await contract.no_error();
 
       const username = authData.username;
@@ -38,7 +38,9 @@ function ChangePassword() {
         return;
       }
 
-      await contract.changePassword(username, newPassword, type);
+      const res = await contract.changePassword(username, newPassword, type);
+      await provider.waitForTransaction(res.hash);
+
       authAdmin(username, newPassword, type);
       setAlertMessage('Password changed successfully');
       currentPasswordRef.current.value = "";
