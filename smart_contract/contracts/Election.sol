@@ -84,7 +84,7 @@ contract Election {
     if (_curr_timestamp != 0) {
       bool is_valid_action = validate_action(_curr_timestamp);
       if (is_valid_action == false)
-        return;
+        revert("Cannot add candidate");
     }
 
     candidateCount++;
@@ -100,10 +100,10 @@ contract Election {
     bool is_valid_action = validate_action(_curr_timestamp);
 
     if (is_valid_action == false)
-      return;
+      revert("Cannot edit candidate details");
 
     if (candidates[_id].id == 0)
-      return;
+      revert("Cannot edit candidate details");
 
     if (keccak256(bytes(_type)) == keccak256(bytes("name")))
       candidates[_id].politicalPartyName = _data;
@@ -119,7 +119,7 @@ contract Election {
     bool is_valid_action = validate_action(_curr_timestamp);
 
     if (is_valid_action == false)
-      return;
+      revert("Cannot delete candidate");
 
     candidateCount--;
     delete candidates[_id];
@@ -153,10 +153,10 @@ contract Election {
   // adding a new executor
   function addExecutor(string memory _username, string memory _password, uint _role) public {
     if (executors[_username].role != 0)
-      return;
+      revert("Failed to add executor");
 
     if (_role <= 0 || _role >= 3)
-      return;
+      revert("Failed to add executor");
 
     executor_names.push(_username);
     executors[_username] = Executor(_username, _password, _role);
@@ -165,22 +165,22 @@ contract Election {
   // editing the executor data
   function editExecutorRole(string memory _name, uint _role) public {
     if (executors[_name].role == 0)
-      return;
+      revert("Failed to edit executor role");
 
     if (_role <= 0 || _role >= 3)
-      return;
+      revert("Failed to edit executor role");
 
     executors[_name].role = _role;
   }
 
   function deleteExecutor(string memory _name) public {
     if (executors[_name].role == 0)
-      return;
+      revert("Failed to delete executor");
 
     uint index = get_executor_index(_name);
 
     if (index >= executor_names.length)
-      return;
+      revert("Failed to delete executor");
 
     executor_names[index] = executor_names[executor_names.length - 1];
     executor_names.pop();
@@ -317,7 +317,7 @@ contract Election {
     bool is_valid_action = validate_action(_curr_timestamp);
 
     if (is_valid_action == false)
-      return;
+      revert("Cannot change election timings now");
 
     startTimestamp = _start_timestamp;
     endTimestamp = _end_timestamp;
@@ -395,7 +395,7 @@ contract Election {
     // for the executor
     if (_type == 2) {
       if (executors[_name].role == 0)
-        return;
+        revert("Failed to change password");
 
       executors[_name].password = _new_password;
     }
